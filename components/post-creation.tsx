@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ImageIcon, Video, Mic, Send, Loader2 } from "lucide-react";
 import { getSupabaseClient } from "@/lib/supabaseClient";
 import { filterContent, hasBadWords } from "@/lib/content-filter";
+import { moderateText } from "@/lib/moderation";
 import { useAccessibility } from "@/components/accessibility-provider";
 
 export function PostCreation() {
@@ -52,6 +53,19 @@ export function PostCreation() {
       alert("You must be logged in to post.");
       setLoading(false);
       return;
+    }
+
+    // AI moderation (Perspective API via /api/moderate)
+    try {
+      const toCheck = [title, content].filter(Boolean).join("\n");
+      const moderation = await moderateText(toCheck);
+      if (!moderation.allowed) {
+        alert("Your post was blocked for harmful or toxic content.");
+        setLoading(false);
+        return;
+      }
+    } catch (e) {
+      console.warn("Moderation failed, falling back to local filter", e);
     }
 
     // Check for bad words

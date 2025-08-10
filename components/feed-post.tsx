@@ -27,6 +27,7 @@ import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import dayjs from 'dayjs';
 import Link from 'next/link';
 import { ProfileCard } from "@/components/profile/profile-card";
+import { moderateText } from "@/lib/moderation";
 
 interface Comment {
   id: string
@@ -318,6 +319,17 @@ export function FeedPost({
     if (!currentUserId) {
       console.log('No currentUserId, cannot add comment');
       return;
+    }
+
+    // AI moderation
+    try {
+      const moderation = await moderateText(commentText.trim());
+      if (!moderation.allowed) {
+        alert('Your comment was blocked for harmful or toxic content.');
+        return;
+      }
+    } catch (e) {
+      console.warn('Moderation failed, proceeding to local checks', e);
     }
     
     console.log('=== COMMENT CREATION DEBUG ===');

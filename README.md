@@ -62,6 +62,29 @@ AccessAble is built with a strong focus on accessibility. Key features include:
 - **ARIA Attributes**: Applied where necessary to improve accessibility for dynamic content.
 - **Keyboard Navigation**: All interactive elements are navigable via keyboard.
 
+## Content Moderation (Free API)
+
+We use Google's Perspective API to block harmful content in posts and comments.
+
+- API route: `app/api/moderate/route.ts`
+- Client helper: `lib/moderation.ts`
+- Enforced in:
+  - `components/post-creation.tsx`
+  - `app/jobs/post/page.tsx`
+  - `components/feed-post.tsx` (comments)
+
+Setup:
+- Create a free API key at Google Cloud for Perspective API
+- Add `PERSPECTIVE_API_KEY` to your environment (e.g. `.env.local`):
+
+```
+PERSPECTIVE_API_KEY=your_key_here
+```
+
+Behavior:
+- Requests are blocked if any toxicity score ≥ 0.75. Adjust threshold in `app/api/moderate/route.ts`.
+- If the API fails, we fall back to the local word filter in `lib/content-filter.ts`.
+
 ## Contributing
 
 We welcome contributions to make AccessAble even better! Please feel free to open issues or submit pull requests.

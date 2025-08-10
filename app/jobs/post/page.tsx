@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, Briefcase, Building, MapPin, Globe, DollarSign, Calendar, Accessibility } from "lucide-react"
 import { getSupabaseClient } from "@/lib/supabaseClient";
 import { filterContent, hasBadWords } from "@/lib/content-filter"
+import { moderateText } from "@/lib/moderation"
 import Link from "next/link"
 import { Header } from "@/components/header"
 
@@ -55,6 +56,21 @@ export default function PostJobPage() {
       alert("You must be logged in to post a job.")
       setLoading(false)
       return
+    }
+
+    // AI moderation
+    try {
+      const toCheck = [formData.jobTitle, formData.description, formData.companyName]
+        .filter(Boolean)
+        .join("\n")
+      const moderation = await moderateText(toCheck)
+      if (!moderation.allowed) {
+        alert("Your job post was blocked for harmful or toxic content.")
+        setLoading(false)
+        return
+      }
+    } catch (e) {
+      console.warn("Moderation failed, falling back to local filter", e)
     }
 
     // Check for bad words
