@@ -1,0 +1,298 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+  
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Dark Mode Styles - Consistent across all pages */
+.dark {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+.dark .bg-cream,
+.dark .bg-white,
+.dark .bg-card,
+.dark .bg-background {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+.dark .text-charcoal,
+.dark .text-gray-600,
+.dark .text-gray-500,
+.dark .text-gray-400,
+.dark .text-gray-300,
+.dark .text-black {
+  color: hsl(var(--foreground));
+}
+
+.dark .border,
+.dark .border-gray-200,
+.dark .border-border {
+  border-color: hsl(var(--border));
+}
+
+.dark input,
+.dark textarea {
+  background-color: hsl(var(--input));
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: hsl(var(--muted-foreground));
+}
+
+.dark .bg-gray-50,
+.dark .bg-gray-100 {
+  background-color: hsl(var(--muted));
+}
+
+.dark .hover\:bg-gray-50:hover,
+.dark .hover\:bg-gray-100:hover {
+  background-color: hsl(var(--accent));
+}
+
+.dark .shadow-md,
+.dark .shadow-lg {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+}
+
+/* Enhanced Global High Contrast Mode for WCAG Compliance */
+.high-contrast body,
+.high-contrast .min-h-screen,
+.high-contrast .bg-cream,
+.high-contrast .bg-white,
+.high-contrast .bg-card,
+.high-contrast .bg-background {
+  background: #121212 !important;
+  color: #f2f2f2 !important;
+  border-color: #f2f2f2 !important;
+}
+
+.high-contrast .text-charcoal,
+.high-contrast .text-gray-600,
+.high-contrast .text-gray-500,
+.high-contrast .text-gray-400,
+.high-contrast .text-gray-300,
+.high-contrast .text-black,
+.high-contrast .text-white,
+.high-contrast .text-cream,
+.high-contrast .text-background {
+  color: #f2f2f2 !important;
+}
+
+.high-contrast .timestamp,
+.high-contrast .text-timestamp {
+  color: #d4d4d8 !important;
+}
+
+.high-contrast input::placeholder,
+.high-contrast textarea::placeholder {
+  color: #f2f2f2 !important;
+  opacity: 1 !important;
+}
+
+.high-contrast .btn-yellow,
+.high-contrast .bg-mustard,
+.high-contrast .bg-yellow-400 {
+  background: #ffe600 !important;
+  color: #121212 !important;
+  font-weight: bold !important;
+}
+
+.high-contrast .btn-yellow svg,
+.high-contrast .bg-mustard svg,
+.high-contrast .bg-yellow-400 svg {
+  color: #121212 !important;
+  fill: #121212 !important;
+}
+
+.high-contrast .border,
+.high-contrast .rounded,
+.high-contrast .shadow,
+.high-contrast .section-border,
+.high-contrast .recommended-jobs {
+  border-color: #f2f2f2 !important;
+  border-width: 1.5px !important;
+  box-shadow: none !important;
+}
+
+.high-contrast *:focus {
+  outline: 2.5px solid #ffe600 !important;
+  outline-offset: 2px !important;
+}
+
+/* Finalized High Contrast Mode for WCAG Compliance */
+.high-contrast body,
+.high-contrast .min-h-screen,
+.high-contrast .bg-cream,
+.high-contrast .bg-white,
+.high-contrast .bg-card,
+.high-contrast .bg-background {
+  background: #121212 !important;
+  color: #FFFFFF !important;
+  border-color: #FFFFFF !important;
+}
+
+.high-contrast .text-charcoal,
+.high-contrast .text-gray-600,
+.high-contrast .text-gray-500,
+.high-contrast .text-gray-400,
+.high-contrast .text-gray-300,
+.high-contrast .text-black,
+.high-contrast .text-white,
+.high-contrast .text-cream,
+.high-contrast .text-background {
+  color: #FFFFFF !important;
+}
+
+.high-contrast .timestamp,
+.high-contrast .text-timestamp {
+  color: #E4E4E7 !important;
+}
+
+.high-contrast input,
+.high-contrast textarea {
+  color: #FFFFFF !important;
+  background: #121212 !important;
+  border: 2px solid #ffe600 !important;
+}
+
+.high-contrast input::placeholder,
+.high-contrast textarea::placeholder {
+  color: #E4E4E7 !important;
+  opacity: 1 !important;
+}
+
+.high-contrast .btn-yellow,
+.high-contrast .bg-mustard,
+.high-contrast .bg-yellow-400,
+.high-contrast .btn-green,
+.high-contrast .bg-forest-green {
+  background: #ffe600 !important;
+  color: #121212 !important;
+  font-weight: bold !important;
+}
+
+.high-contrast .btn-yellow svg,
+.high-contrast .bg-mustard svg,
+.high-contrast .bg-yellow-400 svg,
+.high-contrast .btn-green svg,
+.high-contrast .bg-forest-green svg {
+  color: #FFFFFF !important;
+  fill: #FFFFFF !important;
+}
+
+.high-contrast .card,
+.high-contrast .bg-card,
+.high-contrast .recommended-jobs,
+.high-contrast .section-border {
+  background: #1a1a1a !important;
+  border-color: #FFFFFF !important;
+  border-width: 2px !important;
+}
+
+.high-contrast *:focus {
+  outline: 3px solid #ffe600 !important;
+  outline-offset: 2px !important;
+}
+
+/*
+ARIA NOTE: For all custom buttons, links, and inputs, ensure:
+- aria-label or aria-labelledby is present if the element is icon-only or not descriptive.
+- role="button" or role="link" is set for non-native elements.
+- tabindex="0" for custom interactive elements.
+*/

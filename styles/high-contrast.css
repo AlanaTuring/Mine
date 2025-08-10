@@ -1,0 +1,386 @@
+/* High Contrast Mode - Modern & Accessible */
+
+/* High Contrast Color Palette */
+:root[data-high-contrast="true"] {
+  /* Modern high contrast colors - not harsh black/white */
+  --hc-bg-primary: #1a1a1a;      /* Dark gray instead of pure black */
+  --hc-bg-secondary: #2d2d2d;    /* Slightly lighter gray */
+  --hc-bg-tertiary: #404040;     /* Medium gray for cards */
+  --hc-bg-elevated: #4a4a4a;     /* Elevated surfaces */
+  
+  --hc-text-primary: #f5f5f5;    /* Soft white */
+  --hc-text-secondary: #e0e0e0;  /* Slightly dimmer white */
+  --hc-text-muted: #b0b0b0;      /* Muted text */
+  
+  --hc-accent-primary: #ffd700;  /* Soft gold instead of harsh yellow */
+  --hc-accent-secondary: #ffed4e; /* Lighter gold for hover */
+  --hc-accent-tertiary: #e6c200; /* Darker gold for active */
+  
+  --hc-border-primary: #666666;  /* Medium gray borders */
+  --hc-border-secondary: #888888; /* Lighter borders */
+  --hc-border-focus: #ffd700;    /* Gold focus borders */
+  
+  --hc-success: #4ade80;         /* Green */
+  --hc-error: #f87171;           /* Red */
+  --hc-warning: #fbbf24;         /* Amber */
+  --hc-info: #60a5fa;            /* Blue */
+  
+  /* Focus and interaction states */
+  --hc-focus-ring: 0 0 0 3px rgba(255, 215, 0, 0.5);
+  --hc-focus-ring-inset: inset 0 0 0 3px rgba(255, 215, 0, 0.5);
+  
+  /* Shadows for depth */
+  --hc-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.8);
+  --hc-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.8);
+  --hc-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.8);
+}
+
+/* Base styles for high contrast mode */
+[data-high-contrast="true"] {
+  background-color: var(--hc-bg-primary);
+  color: var(--hc-text-primary);
+}
+
+/* Typography improvements */
+[data-high-contrast="true"] h1,
+[data-high-contrast="true"] h2,
+[data-high-contrast="true"] h3,
+[data-high-contrast="true"] h4,
+[data-high-contrast="true"] h5,
+[data-high-contrast="true"] h6 {
+  color: var(--hc-text-primary);
+  font-weight: 600;
+}
+
+[data-high-contrast="true"] p {
+  color: var(--hc-text-secondary);
+  line-height: 1.6;
+}
+
+/* Form elements */
+[data-high-contrast="true"] input,
+[data-high-contrast="true"] textarea,
+[data-high-contrast="true"] select {
+  background-color: var(--hc-bg-secondary);
+  border: 2px solid var(--hc-border-primary);
+  color: var(--hc-text-primary);
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+[data-high-contrast="true"] input::placeholder,
+[data-high-contrast="true"] textarea::placeholder {
+  color: var(--hc-text-muted);
+  opacity: 0.7;
+}
+
+[data-high-contrast="true"] input:focus,
+[data-high-contrast="true"] textarea:focus,
+[data-high-contrast="true"] select:focus {
+  outline: none;
+  border-color: var(--hc-border-focus);
+  box-shadow: var(--hc-focus-ring);
+  background-color: var(--hc-bg-tertiary);
+}
+
+[data-high-contrast="true"] input:hover,
+[data-high-contrast="true"] textarea:hover,
+[data-high-contrast="true"] select:hover {
+  border-color: var(--hc-border-secondary);
+  background-color: var(--hc-bg-tertiary);
+}
+
+[data-high-contrast="true"] input::placeholder,
+[data-high-contrast="true"] textarea::placeholder {
+  color: var(--hc-text-muted);
+}
+
+/* Labels */
+[data-high-contrast="true"] label {
+  color: var(--hc-text-primary);
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+/* Buttons */
+[data-high-contrast="true"] .btn,
+[data-high-contrast="true"] button {
+  background-color: var(--hc-bg-secondary);
+  border: 2px solid var(--hc-border-primary);
+  color: var(--hc-text-primary);
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+[data-high-contrast="true"] .btn:hover,
+[data-high-contrast="true"] button:hover {
+  background-color: var(--hc-accent-primary);
+  border-color: var(--hc-accent-primary);
+  color: var(--hc-bg-primary);
+  transform: translateY(-1px);
+  box-shadow: var(--hc-shadow-md);
+}
+
+[data-high-contrast="true"] .btn:focus,
+[data-high-contrast="true"] button:focus {
+  outline: none;
+  box-shadow: var(--hc-focus-ring);
+}
+
+[data-high-contrast="true"] .btn:active,
+[data-high-contrast="true"] button:active {
+  background-color: var(--hc-accent-tertiary);
+  transform: translateY(0);
+}
+
+/* Primary buttons */
+[data-high-contrast="true"] .btn-primary,
+[data-high-contrast="true"] .bg-mustard {
+  background-color: var(--hc-accent-primary);
+  border-color: var(--hc-accent-primary);
+  color: var(--hc-bg-primary);
+}
+
+[data-high-contrast="true"] .btn-primary:hover,
+[data-high-contrast="true"] .bg-mustard:hover {
+  background-color: var(--hc-accent-secondary);
+  border-color: var(--hc-accent-secondary);
+}
+
+/* Cards and containers */
+[data-high-contrast="true"] .card,
+[data-high-contrast="true"] .bg-white,
+[data-high-contrast="true"] .bg-gray-50 {
+  background-color: var(--hc-bg-tertiary);
+  border: 2px solid var(--hc-border-primary);
+  border-radius: 0.75rem;
+  box-shadow: var(--hc-shadow-md);
+}
+
+[data-high-contrast="true"] .card:hover,
+[data-high-contrast="true"] .bg-white:hover {
+  border-color: var(--hc-border-secondary);
+  box-shadow: var(--hc-shadow-lg);
+}
+
+/* Switches and toggles */
+[data-high-contrast="true"] .switch {
+  background-color: var(--hc-bg-secondary);
+  border: 2px solid var(--hc-border-primary);
+}
+
+[data-high-contrast="true"] .switch[data-state="checked"] {
+  background-color: var(--hc-accent-primary);
+  border-color: var(--hc-accent-primary);
+}
+
+[data-high-contrast="true"] .switch-thumb {
+  background-color: var(--hc-text-primary);
+  border: 2px solid var(--hc-border-primary);
+}
+
+[data-high-contrast="true"] .switch[data-state="checked"] .switch-thumb {
+  border-color: var(--hc-accent-primary);
+}
+
+/* Sliders */
+[data-high-contrast="true"] .slider-track {
+  background-color: var(--hc-bg-secondary);
+  border: 2px solid var(--hc-border-primary);
+}
+
+[data-high-contrast="true"] .slider-range {
+  background-color: var(--hc-accent-primary);
+}
+
+[data-high-contrast="true"] .slider-thumb {
+  background-color: var(--hc-accent-primary);
+  border: 3px solid var(--hc-bg-primary);
+  box-shadow: var(--hc-shadow-sm);
+}
+
+[data-high-contrast="true"] .slider-thumb:hover {
+  background-color: var(--hc-accent-secondary);
+  transform: scale(1.1);
+}
+
+/* Dialog and modal improvements */
+[data-high-contrast="true"] .dialog-content {
+  background-color: var(--hc-bg-elevated);
+  border: 3px solid var(--hc-border-primary);
+  box-shadow: var(--hc-shadow-lg);
+}
+
+[data-high-contrast="true"] .dialog-header {
+  border-bottom: 2px solid var(--hc-border-primary);
+  padding: 1.5rem;
+}
+
+[data-high-contrast="true"] .dialog-title {
+  color: var(--hc-text-primary);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+/* Navigation and header */
+[data-high-contrast="true"] .header,
+[data-high-contrast="true"] nav {
+  background-color: var(--hc-bg-secondary);
+  border-bottom: 2px solid var(--hc-border-primary);
+}
+
+[data-high-contrast="true"] .nav-link {
+  color: var(--hc-text-secondary);
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+[data-high-contrast="true"] .nav-link:hover {
+  background-color: var(--hc-bg-tertiary);
+  color: var(--hc-text-primary);
+}
+
+[data-high-contrast="true"] .nav-link:focus {
+  outline: none;
+  box-shadow: var(--hc-focus-ring);
+}
+
+/* Icons */
+[data-high-contrast="true"] .text-mustard {
+  color: var(--hc-accent-primary);
+}
+
+[data-high-contrast="true"] .text-gray-400,
+[data-high-contrast="true"] .text-gray-500,
+[data-high-contrast="true"] .text-gray-600 {
+  color: var(--hc-text-muted);
+}
+
+/* Links */
+[data-high-contrast="true"] a {
+  color: var(--hc-accent-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+[data-high-contrast="true"] a:hover {
+  color: var(--hc-accent-secondary);
+  text-decoration-thickness: 2px;
+}
+
+[data-high-contrast="true"] a:focus {
+  outline: none;
+  box-shadow: var(--hc-focus-ring);
+  border-radius: 0.25rem;
+}
+
+/* Status colors */
+[data-high-contrast="true"] .text-green-600 {
+  color: var(--hc-success);
+}
+
+[data-high-contrast="true"] .text-red-600 {
+  color: var(--hc-error);
+}
+
+[data-high-contrast="true"] .text-yellow-600 {
+  color: var(--hc-warning);
+}
+
+[data-high-contrast="true"] .text-blue-600 {
+  color: var(--hc-info);
+}
+
+/* Large text mode */
+[data-large-text="true"] {
+  font-size: 1.2rem;
+}
+
+[data-large-text="true"] h1 { font-size: 2.5rem; }
+[data-large-text="true"] h2 { font-size: 2rem; }
+[data-large-text="true"] h3 { font-size: 1.75rem; }
+[data-large-text="true"] h4 { font-size: 1.5rem; }
+[data-large-text="true"] h5 { font-size: 1.25rem; }
+[data-large-text="true"] h6 { font-size: 1.1rem; }
+
+/* Spacing improvements for better readability */
+[data-high-contrast="true"] .space-y-3 > * + * {
+  margin-top: 1rem;
+}
+
+[data-high-contrast="true"] .space-y-4 > * + * {
+  margin-top: 1.5rem;
+}
+
+[data-high-contrast="true"] .space-y-6 > * + * {
+  margin-top: 2rem;
+}
+
+/* Checkboxes and form controls */
+[data-high-contrast="true"] input[type="checkbox"] {
+  background-color: var(--hc-bg-secondary);
+  border: 2px solid var(--hc-border-primary);
+  border-radius: 0.25rem;
+  color: var(--hc-accent-primary);
+}
+
+[data-high-contrast="true"] input[type="checkbox"]:checked {
+  background-color: var(--hc-accent-primary);
+  border-color: var(--hc-accent-primary);
+}
+
+[data-high-contrast="true"] input[type="checkbox"]:focus {
+  outline: none;
+  box-shadow: var(--hc-focus-ring);
+}
+
+/* Form sections and groups */
+[data-high-contrast="true"] .bg-gray-50 {
+  background-color: var(--hc-bg-secondary) !important;
+  border-color: var(--hc-border-primary) !important;
+}
+
+[data-high-contrast="true"] .text-gray-600 {
+  color: var(--hc-text-secondary) !important;
+}
+
+[data-high-contrast="true"] .text-gray-700 {
+  color: var(--hc-text-primary) !important;
+}
+
+/* Focus indicators for keyboard navigation */
+[data-high-contrast="true"] *:focus-visible {
+  outline: 3px solid var(--hc-accent-primary);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+/* Reduced motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  [data-high-contrast="true"] * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Print styles for high contrast */
+@media print {
+  [data-high-contrast="true"] {
+    background: white !important;
+    color: black !important;
+  }
+  
+  [data-high-contrast="true"] * {
+    background: white !important;
+    color: black !important;
+    border-color: black !important;
+  }
+} 
