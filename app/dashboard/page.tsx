@@ -15,6 +15,12 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handlePostCreated = () => {
+    // Trigger a refresh of the posts
+    setRefreshKey(prev => prev + 1);
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -57,22 +63,22 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-background relative">
       <Header />
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid min-w-0 flex-wrap grid-cols-1 md:grid-cols-4 gap-6">
-          {/* Left Sidebar */}
-          <div className="lg:col-span-1">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+          {/* Left Sidebar - Hidden on mobile, shown on large screens */}
+          <div className="hidden lg:block lg:col-span-3">
             <NGOProfileSidebar />
           </div>
 
-          {/* Main Feed */}
-          <div className="lg:col-span-2 space-y-6">
-            <PostCreation />
-            <FollowingPosts currentUserId={currentUserId} />
+          {/* Main Feed - Full width on mobile, 6 columns on large screens */}
+          <div className="lg:col-span-6 space-y-4 sm:space-y-6">
+            <PostCreation onPostCreated={handlePostCreated} />
+            <FollowingPosts currentUserId={currentUserId} key={refreshKey} />
           </div>
 
-          {/* Right Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="bg-muted rounded-lg shadow-sm border border-border p-6">
+          {/* Right Sidebar - Hidden on mobile, shown on large screens */}
+          <div className="hidden lg:block lg:col-span-3">
+            <div className="bg-muted rounded-lg shadow-sm border border-border p-4 sm:p-6">
               <h3 className="text-lg font-semibold text-foreground mb-4">Recommended Jobs</h3>
               <div className="text-center py-8 text-muted-foreground">
                 <p className="text-sm">AI-powered job recommendations</p>

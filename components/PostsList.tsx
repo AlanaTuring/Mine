@@ -120,7 +120,7 @@ export default function PostsList() {
           content: post.content,
           tags: post.tags,
           likes: realLikeCount,
-          comments: realCommentCount,
+          comments: realCommentCount, // Use real-time count instead of database column
           shares: post.shares || 0,
           created_at: post.created_at,
           updated_at: post.updated_at,
@@ -156,6 +156,11 @@ export default function PostsList() {
     );
   };
 
+  const handlePostCreated = () => {
+    // Refresh the posts list when a new post is created
+    fetchPosts();
+  };
+
   const handlePostDelete = (postId: string) => {
     setPosts(prevPosts => prevPosts.filter(post => post.id !== postId));
   };
@@ -175,6 +180,7 @@ export default function PostsList() {
 
   // Function to refresh all posts (when comments/likes change)
   const refreshAllPosts = () => {
+    console.log('🔄 Refreshing all posts due to comment/like change');
     fetchPosts();
   };
 
@@ -220,6 +226,7 @@ export default function PostsList() {
                 postUserId={post.user_id}
                 onPostUpdate={handlePostUpdate}
                 onPostDelete={handlePostDelete}
+                onCommentChange={refreshAllPosts}
               />
             </div>
           ))}

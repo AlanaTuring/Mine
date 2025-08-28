@@ -7,9 +7,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { ImageIcon, Video, Mic, Send, Loader2 } from "lucide-react";
 import { getSupabaseClient } from "@/lib/supabaseClient";
 import { filterContent, hasBadWords } from "@/lib/content-filter";
+import { moderateText } from "@/lib/moderation";
 import { useAccessibility } from "@/components/accessibility-provider";
 
-export function PostCreation() {
+interface PostCreationProps {
+  onPostCreated?: () => void;
+}
+
+export function PostCreation({ onPostCreated }: PostCreationProps) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -52,6 +57,19 @@ export function PostCreation() {
       alert("You must be logged in to post.");
       setLoading(false);
       return;
+    }
+
+    // AI moderation (Perspective API via /api/moderate)
+    try {
+      const toCheck = [title, content].filter(Boolean).join("\n");
+      const moderation = await moderateText(toCheck);
+      if (!moderation.allowed) {
+        alert("Your post was blocked by AI for harmful or toxic content.");
+        setLoading(false);
+        return;
+      }
+    } catch (e) {
+      console.warn("Moderation failed, falling back to local filter", e);
     }
 
     // Check for bad words
@@ -136,6 +154,11 @@ export function PostCreation() {
       if (fileInputRef.current) fileInputRef.current.value = "";
       if (videoInputRef.current) videoInputRef.current.value = "";
       alert("Post created successfully!");
+      
+      // Refresh the posts list
+      if (onPostCreated) {
+        onPostCreated();
+      }
     }
     setLoading(false);
   };
@@ -147,11 +170,11 @@ export function PostCreation() {
           <Loader2 className="animate-spin h-8 w-8 text-mustard" />
         </div>
       )}
-      <div className="bg-card rounded-xl shadow-sm border border-border p-5 mb-6">
-        <div className="flex items-start gap-4">
+      <div className="bg-card rounded-xl shadow-sm border border-border p-3 sm:p-5 mb-4 sm:mb-6">
+        <div className="flex items-start gap-3 sm:gap-4">
           {/* Profile Picture */}
           <div className="flex-shrink-0">
-            <div className="w-10 h-10 bg-gradient-to-br from-mustard to-forest-green rounded-full flex items-center justify-center text-white font-semibold text-sm">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-mustard to-forest-green rounded-full flex items-center justify-center text-white font-semibold text-xs sm:text-sm">
               ME
             </div>
           </div>
@@ -161,7 +184,7 @@ export function PostCreation() {
               placeholder="Share an accessible post, article, or opportunity..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="w-full bg-background border border-input rounded-xl px-4 py-3 text-sm min-h-[60px] resize-none focus:min-h-[100px] focus:py-4 focus:px-5 focus:shadow-md focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all text-foreground placeholder:text-muted-foreground"
+              className="w-full bg-background border border-input rounded-xl px-3 sm:px-4 py-2 sm:py-3 text-sm min-h-[50px] sm:min-h-[60px] resize-none focus:min-h-[80px] sm:focus:min-h-[100px] focus:py-3 sm:focus:py-4 focus:px-4 sm:focus:px-5 focus:shadow-md focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all text-foreground placeholder:text-muted-foreground"
               rows={3}
               aria-label="Post content"
             />
@@ -186,15 +209,15 @@ export function PostCreation() {
             )}
             {/* Actions Row */}
             <div className="flex items-center justify-between mt-2">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 sm:gap-2">
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-2 text-sm text-muted-foreground hover:bg-accent px-3 py-2 rounded-md transition focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                  className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-muted-foreground hover:bg-accent px-2 sm:px-3 py-1.5 sm:py-2 rounded-md transition focus:outline-none focus:ring-2 focus:ring-yellow-400"
                   aria-label="Add photo"
                 >
-                  <ImageIcon className="h-5 w-5" />
-                  <span>Photo</span>
+                  <ImageIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <span className="hidden sm:inline">Photo</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -206,11 +229,11 @@ export function PostCreation() {
                 <button
                   type="button"
                   onClick={() => videoInputRef.current?.click()}
-                  className="flex items-center gap-2 text-sm text-muted-foreground hover:bg-accent px-3 py-2 rounded-md transition focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                  className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-muted-foreground hover:bg-accent px-2 sm:px-3 py-1.5 sm:py-2 rounded-md transition focus:outline-none focus:ring-2 focus:ring-yellow-400"
                   aria-label="Add video"
                 >
-                  <Video className="h-5 w-5" />
-                  <span>Video</span>
+                  <Video className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <span className="hidden sm:inline">Video</span>
                   <input
                     type="file"
                     accept="video/*"
@@ -222,21 +245,21 @@ export function PostCreation() {
                 <button
                   type="button"
                   disabled
-                  className="flex items-center gap-2 text-sm text-muted-foreground hover:bg-accent px-3 py-2 rounded-md transition focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                  className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-muted-foreground hover:bg-accent px-2 sm:px-3 py-1.5 sm:py-2 rounded-md transition focus:outline-none focus:ring-2 focus:ring-yellow-400"
                   aria-label="Add audio (coming soon)"
                 >
-                  <Mic className="h-5 w-5" />
-                  <span>Audio</span>
+                  <Mic className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <span className="hidden sm:inline">Audio</span>
                 </button>
               </div>
               <button
                 onClick={handlePost}
                 disabled={loading || !content.trim()}
-                className="bg-yellow-400 hover:bg-yellow-500 text-white p-2 rounded-full transition focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                className="bg-yellow-400 hover:bg-yellow-500 text-white p-1.5 sm:p-2 rounded-full transition focus:outline-none focus:ring-2 focus:ring-yellow-500"
                 aria-label="Create post"
                 type="button"
               >
-                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+                {loading ? <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" /> : <Send className="h-4 w-4 sm:h-5 sm:w-5" />}
               </button>
             </div>
           </div>

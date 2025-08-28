@@ -41,7 +41,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     // NGO Profile Layout
     return (
       <div className="min-h-screen bg-background">
-        <div className="max-w-3xl mx-auto py-10 px-4 md:px-0">
+      <div className="max-w-6xl mx-auto py-10 px-4 md:px-6">
           {/* Back Button */}
           <div className="mb-6">
             <Link href="/dashboard">
@@ -111,7 +111,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   // Default (Individual) Profile Layout
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-2xl mx-auto py-8 px-4">
+      <div className="max-w-6xl mx-auto py-8 px-4 md:px-6">
         {/* Back Button */}
         <div className="mb-6">
           <Link href="/dashboard">

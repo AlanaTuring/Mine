@@ -41,6 +41,13 @@ export default function JobsPage() {
   const [jobPosts, setJobPosts] = useState<JobPost[]>([])
   const [loading, setLoading] = useState(true)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [refreshKey, setRefreshKey] = useState(0)
+
+  const handleJobCreated = () => {
+    // Refresh the job posts list
+    setRefreshKey(prev => prev + 1);
+    fetchJobPosts();
+  };
   const [editingJobId, setEditingJobId] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState("")
   const [editContent, setEditContent] = useState("")
@@ -64,12 +71,18 @@ export default function JobsPage() {
   const [editJobLoading, setEditJobLoading] = useState(false);
   const [editJobError, setEditJobError] = useState<string | null>(null);
 
-  
-  useEffect(() => {
+    useEffect(() => {
     setMounted(true);
     fetchCurrentUser()
     fetchJobPosts()
   }, [])
+
+  // Refresh jobs when component mounts (e.g., after posting a new job)
+  useEffect(() => {
+    if (mounted) {
+      fetchJobPosts();
+    }
+  }, [mounted])
 
   const fetchCurrentUser = async () => {
     try {
@@ -285,15 +298,15 @@ export default function JobsPage() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main id="main-content" className="container-responsive max-w-6xl mx-auto px-4 py-8">
+      <main id="main-content" className="container-responsive max-w-6xl mx-auto px-2 sm:px-4 py-4 sm:py-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">Jobs</h1>
-            <p className="text-muted-foreground">Find accessible job opportunities</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Jobs</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Find accessible job opportunities</p>
           </div>
           <Link href="/jobs/post" className="mt-4 sm:mt-0">
-            <Button className="bg-mustard hover:bg-forest-green text-white">
+            <Button className="bg-mustard hover:bg-forest-green text-white w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Post a Job
             </Button>
@@ -301,15 +314,15 @@ export default function JobsPage() {
         </div>
 
         {/* Job Posts */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {jobPosts.length === 0 ? (
             <Card className="bg-card">
-              <CardContent className="text-center py-12">
-                <Briefcase className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">No jobs posted yet</h3>
-                <p className="text-muted-foreground mb-4">Be the first to share an accessible job opportunity!</p>
+              <CardContent className="text-center py-8 sm:py-12">
+                <Briefcase className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">No jobs posted yet</h3>
+                <p className="text-sm sm:text-base text-muted-foreground mb-4">Be the first to share an accessible job opportunity!</p>
                 <Link href="/jobs/post">
-                  <Button className="bg-mustard hover:bg-forest-green text-white">
+                  <Button className="bg-mustard hover:bg-forest-green text-white w-full sm:w-auto">
                     <Plus className="h-4 w-4 mr-2" />
                     Post the First Job
                   </Button>

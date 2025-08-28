@@ -6,7 +6,6 @@ import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Eye, EyeOff, Shield, Accessibility, Volume2, VolumeX, Type, Contrast, MousePointer, Moon } from "lucide-react"
 import { getSupabaseClient } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
@@ -23,7 +22,6 @@ export function AuthPage() {
     email: "",
     password: "",
     confirmPassword: "",
-    agreeToTerms: false,
     accessibilityNeeds: [] as string[],
     accountType: "Individual",
     organizationName: "",
@@ -37,10 +35,20 @@ export function AuthPage() {
   const { settings, updateSettings } = useAccessibility();
   const highContrast = settings.highContrast;
   const [emailError, setEmailError] = useState("");
+  const [resetEmailSent, setResetEmailSent] = useState(false);
+  const [resetEmailError, setResetEmailError] = useState("");
 
   const router = useRouter();
 
-  useEffect(() => { setHydrated(true); }, []);
+  useEffect(() => { 
+    setHydrated(true); 
+    
+    // Check if user is returning from password reset
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('reset') === 'true') {
+      setResetEmailSent(true);
+    }
+  }, []);
   if (!hydrated) return null;
 
   const handleToggleSignUp = () => {
@@ -74,6 +82,49 @@ export function AuthPage() {
     { email: "jane@company.com" },
     // Add more mock users as needed
   ];
+
+  const handlePasswordReset = async () => {
+    if (!formData.email) {
+      setResetEmailError("Please enter your email address first.");
+      return;
+    }
+
+    setResetEmailError("");
+    setResetEmailSent(false);
+
+    try {
+      const supabase = getSupabaseClient();
+      
+      // For local development, use a simple redirect URL
+      const redirectUrl = process.env.NODE_ENV === 'development' 
+        ? 'http://localhost:3000/reset-password'
+        : `${window.location.origin}/reset-password`;
+
+      console.log('Attempting password reset for:', formData.email);
+      console.log('Redirect URL:', redirectUrl);
+      console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+      
+      const { error, data } = await supabase.auth.resetPasswordForEmail(formData.email, {
+        redirectTo: redirectUrl,
+      });
+
+      console.log('Password reset response:', { error, data });
+
+      if (error) {
+        console.error('Password reset error:', error);
+        setResetEmailError(`Error: ${error.message}`);
+      } else {
+        setResetEmailSent(true);
+        setResetEmailError("");
+        console.log('Password reset email sent successfully');
+        console.log('Check your email inbox and spam folder');
+        console.log('Response data:', data);
+      }
+    } catch (error) {
+      console.error('Password reset error:', error);
+      setResetEmailError("Error sending reset email. Please try again.");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -411,9 +462,10 @@ export function AuthPage() {
                               : "bg-background border-border hover:bg-accent"
                           }`}
                         >
-                          <Checkbox
+                          <input
+                            type="checkbox"
                             checked={(formData.accessibilityNeeds || []).includes(option.id)}
-                            onCheckedChange={() => handleAccessibilityToggle(option.id)}
+                            onChange={() => handleAccessibilityToggle(option.id)}
                             aria-label={`Select ${option.label}`}
                             className="h-4 w-4 text-mustard focus:ring-mustard border-input rounded"
                           />
@@ -432,30 +484,7 @@ export function AuthPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-start space-x-3 p-4 bg-muted rounded-lg border border-border">
-                    <Checkbox
-                      id="terms"
-                      checked={formData.agreeToTerms}
-                      onCheckedChange={(checked) =>
-                        setFormData((prev) => ({ ...prev, agreeToTerms: checked as boolean }))
-                      }
-                      className="mt-1 h-4 w-4 text-mustard focus:ring-mustard border-input rounded"
-                      required
-                    />
-                    <label
-                      htmlFor="terms"
-                      className="text-sm leading-relaxed cursor-pointer text-foreground"
-                    >
-                      I agree to the{" "}
-                      <a href="#" className="text-mustard hover:underline font-medium">
-                        Terms of Service
-                      </a>{" "}
-                      and{" "}
-                      <a href="#" className="text-mustard hover:underline font-medium">
-                        Privacy Policy
-                      </a>
-                    </label>
-                  </div>
+
 
                   <Button
                     type="submit"
@@ -508,10 +537,24 @@ export function AuthPage() {
                   >
                     Sign In
                   </Button>
-                  <div className="text-center">
-                    <a href="#" className="text-sm text-mustard hover:underline font-medium">
+                  <div className="text-center space-y-2">
+                    <button
+                      type="button"
+                      onClick={handlePasswordReset}
+                      className="text-sm text-mustard hover:underline font-medium focus:outline-none focus:ring-2 focus:ring-mustard/20 rounded"
+                    >
                       Forgot your password?
-                    </a>
+                    </button>
+                    {resetEmailSent && (
+                      <div className="text-sm text-forest-green font-medium">
+                        Password reset email sent! Check your inbox.
+                      </div>
+                    )}
+                    {resetEmailError && (
+                      <div className="text-sm text-red-600 font-medium">
+                        {resetEmailError}
+                      </div>
+                    )}
                   </div>
                 </>
               )}

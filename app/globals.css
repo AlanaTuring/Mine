@@ -278,6 +278,63 @@ html, body {
   }
 }
 
+/* Mobile-specific improvements */
+@media (max-width: 640px) {
+  /* Better touch targets */
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Improved text readability */
+  body {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+  
+  /* Better spacing for mobile */
+  .space-y-4 > * + * {
+    margin-top: 1rem;
+  }
+  
+  .space-y-6 > * + * {
+    margin-top: 1.5rem;
+  }
+  
+  /* Improved form elements */
+  input, textarea, select {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+  
+  /* Better card spacing */
+  .card {
+    margin-bottom: 1rem;
+  }
+  
+  /* Improved navigation */
+  nav {
+    padding: 0.5rem;
+  }
+  
+  /* Better button spacing */
+  .flex > * + * {
+    margin-left: 0.5rem;
+  }
+}
+
+/* Tablet improvements */
+@media (min-width: 641px) and (max-width: 1024px) {
+  /* Better use of tablet space */
+  .container-responsive {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  
+  /* Improved grid layouts */
+  .grid {
+    gap: 1.5rem;
+  }
+}
+
 /* Focus styles for accessibility */
 .focus-visible:focus {
   outline: 2px solid #f39c12;

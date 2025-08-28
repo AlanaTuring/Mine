@@ -27,6 +27,7 @@ import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import dayjs from 'dayjs';
 import Link from 'next/link';
 import { ProfileCard } from "@/components/profile/profile-card";
+import { moderateText } from "@/lib/moderation";
 
 interface Comment {
   id: string
@@ -54,6 +55,7 @@ interface FeedPostProps {
   postUserId?: string
   onPostUpdate?: (postId: string, newTitle: string, newContent: string) => void
   onPostDelete?: (postId: string) => void
+  onCommentChange?: () => void; // New prop for comment changes
 }
 
 export function FeedPost({ 
@@ -73,7 +75,8 @@ export function FeedPost({
   currentUserId,
   postUserId,
   onPostUpdate,
-  onPostDelete
+  onPostDelete,
+  onCommentChange
 }: FeedPostProps) {
   const [likeInProgress, setLikeInProgress] = useState(false);
   const [userLiked, setUserLiked] = useState(false);
@@ -279,6 +282,7 @@ export function FeedPost({
           setLikeCount(prev => prev + 1);
           setUserLiked(true);
           console.log('✅ Like added successfully');
+          onCommentChange?.(); // Notify parent of like change
         } else {
           console.error('❌ Error adding like:', error);
         }
@@ -298,6 +302,7 @@ export function FeedPost({
           setLikeCount(prev => Math.max(0, prev - 1));
           setUserLiked(false);
           console.log('✅ Like removed successfully');
+          onCommentChange?.(); // Notify parent of like change
         } else {
           console.error('❌ Error removing like:', error);
         }
@@ -318,6 +323,17 @@ export function FeedPost({
     if (!currentUserId) {
       console.log('No currentUserId, cannot add comment');
       return;
+    }
+
+    // AI moderation
+    try {
+      const moderation = await moderateText(commentText.trim());
+      if (!moderation.allowed) {
+        alert('Your comment was blocked by AI for harmful or toxic content.');
+        return;
+      }
+    } catch (e) {
+      console.warn('Moderation failed, proceeding to local checks', e);
     }
     
     console.log('=== COMMENT CREATION DEBUG ===');
@@ -360,15 +376,16 @@ export function FeedPost({
         .select()
         .single();
       
-      if (!error) {
-        console.log('Comment inserted successfully:', insertedComment);
-        setCommentText('');
-        fetchComments(); // Refresh comments
-        refreshCommentCount(); // Update comment count
-        console.log('Comment added successfully');
-      } else {
-        console.error('Error adding comment:', error);
-      }
+              if (!error) {
+          console.log('Comment inserted successfully:', insertedComment);
+          setCommentText('');
+          fetchComments(); // Refresh comments
+          refreshCommentCount(); // Update comment count
+          console.log('Comment added successfully');
+          onCommentChange?.(); // Notify parent of comment change
+        } else {
+          console.error('Error adding comment:', error);
+        }
     } catch (error) {
       console.error('Error adding comment:', error);
     }
@@ -412,6 +429,7 @@ export function FeedPost({
       if (!error) {
         fetchComments(); // Refresh comments
         refreshCommentCount(); // Update comment count
+        onCommentChange?.(); // Notify parent of comment change
       }
     } catch (error) {
       console.error('Error deleting comment:', error);

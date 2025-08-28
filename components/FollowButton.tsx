@@ -10,13 +10,15 @@ interface FollowButtonProps {
   currentUserId?: string;
   initialIsFollowing?: boolean;
   onFollowChange?: (isFollowing: boolean) => void;
+  showCount?: boolean;
 }
 
 export function FollowButton({ 
   targetUserId, 
   currentUserId, 
   initialIsFollowing = false,
-  onFollowChange 
+  onFollowChange,
+  showCount = true,
 }: FollowButtonProps) {
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
   const [isLoading, setIsLoading] = useState(false);
@@ -136,10 +138,11 @@ export function FollowButton({
         )}
         {isLoading ? 'Loading...' : isFollowing ? 'Following' : 'Follow'}
       </Button>
-      
-      <div className="text-sm text-muted-foreground">
-        {followersCount} {followersCount === 1 ? 'follower' : 'followers'}
-      </div>
+      {showCount && (
+        <div className="text-sm text-muted-foreground">
+          {followersCount} {followersCount === 1 ? 'follower' : 'followers'}
+        </div>
+      )}
     </div>
   );
 } 

@@ -32,27 +32,27 @@ function SearchResults() {
         const { data: people, error: peopleError } = await supabase
           .from('profiles')
           .select('id, first_name, last_name, job_title, avatar_url, account_type')
-          .or(`first_name.ilike.%${query}%,last_name.ilike.%${query}%,job_title.ilike.%${query}%`)
+          .or(`first_name.like.%${query}%,last_name.like.%${query}%,job_title.like.%${query}%`)
           .neq('account_type', 'NGO');
         // Companies (NGOs/Organizations)
         const { data: companies, error: companiesError } = await supabase
           .from('profiles')
           .select('id, organization_name, avatar_url, account_type')
-          .or(`organization_name.ilike.%${query}%`)
+          .or(`organization_name.like.%${query}%`)
           .in('account_type', ['NGO', 'NGO / Organization']);
         // Jobs (posts with is_job_post)
         const { data: jobs, error: jobsError } = await supabase
           .from('posts')
           .select('id, title, job_metadata, created_at')
           .eq('is_job_post', true)
-          .or(`title.ilike.%${query}%,content.ilike.%${query}%,job_metadata->>company_name.ilike.%${query}%`)
+          .or(`title.like.%${query}%,content.like.%${query}%,job_metadata->>company_name.like.%${query}%`)
           .order('created_at', { ascending: false });
         // Posts (not jobs)
         const { data: posts, error: postsError } = await supabase
           .from('posts')
           .select('id, title, content, created_at')
           .eq('is_job_post', false)
-          .or(`title.ilike.%${query}%,content.ilike.%${query}%`)
+          .or(`title.like.%${query}%,content.like.%${query}%`)
           .order('created_at', { ascending: false });
         if (peopleError || companiesError || jobsError || postsError) {
           setError("Error searching. Try again.");

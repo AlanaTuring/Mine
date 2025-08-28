@@ -10,10 +10,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, Briefcase, Building, MapPin, Globe, DollarSign, Calendar, Accessibility } from "lucide-react"
 import { getSupabaseClient } from "@/lib/supabaseClient";
 import { filterContent, hasBadWords } from "@/lib/content-filter"
+import { moderateText } from "@/lib/moderation"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Header } from "@/components/header"
 
 export default function PostJobPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     jobTitle: "",
     description: "",
@@ -49,12 +52,38 @@ export default function PostJobPage() {
     e.preventDefault()
     setLoading(true)
 
+    // Debug: Log form data before submission
+    console.log('Form data before submission:', formData);
+    console.log('Job type value:', formData.jobType);
+
+    // Validate required fields
+    if (!formData.jobTitle || !formData.description || !formData.companyName || !formData.jobType || !formData.applicationLink) {
+      alert("Please fill in all required fields including Job Type.");
+      setLoading(false);
+      return;
+    }
+
     const supabase = getSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       alert("You must be logged in to post a job.")
       setLoading(false)
       return
+    }
+
+    // AI moderation
+    try {
+      const toCheck = [formData.jobTitle, formData.description, formData.companyName]
+        .filter(Boolean)
+        .join("\n")
+      const moderation = await moderateText(toCheck)
+      if (!moderation.allowed) {
+        alert("Your job post was blocked for harmful or toxic content.")
+        setLoading(false)
+        return
+      }
+    } catch (e) {
+      console.warn("Moderation failed, falling back to local filter", e)
     }
 
     // Check for bad words
@@ -119,6 +148,9 @@ export default function PostJobPage() {
         assistiveTechnology: false,
         accessibleOffice: false,
       })
+      
+      // Redirect back to jobs page to see the new job
+      router.push('/jobs');
     } catch (error) {
       console.error("Error posting job:", error)
       alert("Error posting job. Please try again.")
@@ -223,21 +255,24 @@ export default function PostJobPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="jobType">Job Type *</label>
-                  <Select value={formData.jobType} onValueChange={(value) => handleInputChange("jobType", value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select job type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="full-time">Full-time</SelectItem>
-                      <SelectItem value="part-time">Part-time</SelectItem>
-                      <SelectItem value="contract">Contract</SelectItem>
-                      <SelectItem value="internship">Internship</SelectItem>
-                      <SelectItem value="freelance">Freelance</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                                 <div>
+                   <label htmlFor="jobType">Job Type *</label>
+                   <Select value={formData.jobType} onValueChange={(value) => handleInputChange("jobType", value)}>
+                     <SelectTrigger>
+                       <SelectValue placeholder="Select job type" />
+                     </SelectTrigger>
+                     <SelectContent>
+                       <SelectItem value="Full-time">Full-time</SelectItem>
+                       <SelectItem value="Part-time">Part-time</SelectItem>
+                       <SelectItem value="Contract">Contract</SelectItem>
+                       <SelectItem value="Internship">Internship</SelectItem>
+                       <SelectItem value="Freelance">Freelance</SelectItem>
+                     </SelectContent>
+                   </Select>
+                   {formData.jobType && (
+                     <p className="text-sm text-green-600 mt-1">✓ Selected: {formData.jobType}</p>
+                   )}
+                 </div>
                 <div>
                   <label htmlFor="salaryRange">Salary Range (Optional)</label>
                   <Input

@@ -4,7 +4,6 @@ import { Search, Bell, Users, Briefcase, Home, ChevronDown, User, Settings, LogO
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
 import { useState, useEffect, useRef } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { getSupabaseClient } from "@/lib/supabaseClient";
@@ -14,6 +13,8 @@ import { AccessibilitySettingsModal } from "./accessibility-settings-modal"
 
 export function Header() {
   const [userProfile, setUserProfile] = useState<any>(null)
+  const [unreadCount, setUnreadCount] = useState<number>(0)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [showProfileMenu, setShowProfileMenu] = useState(false)
   const [showAccessibilityModal, setShowAccessibilityModal] = useState(false)
   const router = useRouter()
@@ -23,7 +24,8 @@ export function Header() {
 
   // --- SEARCH STATE ---
   const [searchValue, setSearchValue] = useState("");
-  const [searchResults, setSearchResults] = useState({ people: [], jobs: [], companies: [], posts: [] });
+  type SearchResults = { people: any[]; jobs: any[]; companies: any[]; posts: any[] }
+  const [searchResults, setSearchResults] = useState<SearchResults>({ people: [], jobs: [], companies: [], posts: [] });
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -35,17 +37,50 @@ export function Header() {
     async function fetchUserProfile() {
       const supabase = getSupabaseClient();
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-        setUserProfile(profile);
-      }
+      if (!user) return;
+      setCurrentUserId(user.id);
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      setUserProfile(profile);
+
+      const { count } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .is('read_at', null)
+        .eq('recipient_id', user.id);
+      setUnreadCount(count || 0);
     }
     fetchUserProfile();
   }, []);
+
+  // realtime badge updates for notifications
+  useEffect(() => {
+    const supabase = getSupabaseClient();
+    if (!currentUserId) return;
+    const channel = supabase
+      .channel(`notifications-badge:${currentUserId}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `recipient_id=eq.${currentUserId}` }, async () => {
+        const { count } = await supabase
+          .from('notifications')
+          .select('*', { count: 'exact', head: true })
+          .is('read_at', null)
+          .eq('recipient_id', currentUserId);
+        setUnreadCount(count || 0);
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'notifications', filter: `recipient_id=eq.${currentUserId}` }, async () => {
+        const { count } = await supabase
+          .from('notifications')
+          .select('*', { count: 'exact', head: true })
+          .is('read_at', null)
+          .eq('recipient_id', currentUserId);
+        setUnreadCount(count || 0);
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); }
+  }, [currentUserId]);
 
   // --- SEARCH HANDLER ---
   useEffect(() => {
@@ -67,14 +102,14 @@ export function Header() {
         const { data: people, error: peopleError } = await supabase
           .from('profiles')
           .select('id, first_name, last_name, job_title, avatar_url, account_type')
-          .or(`first_name.ilike.%${searchValue}%,last_name.ilike.%${searchValue}%,job_title.ilike.%${searchValue}%`)
+          .or(`first_name.like.%${searchValue}%,last_name.like.%${searchValue}%,job_title.like.%${searchValue}%`)
           .neq('account_type', 'NGO')
           .limit(3);
         // Companies (NGOs/Organizations)
         const { data: companies, error: companiesError } = await supabase
           .from('profiles')
           .select('id, organization_name, avatar_url, account_type')
-          .or(`organization_name.ilike.%${searchValue}%`)
+          .or(`organization_name.like.%${searchValue}%`)
           .in('account_type', ['NGO', 'NGO / Organization'])
           .limit(3);
         // Jobs (posts with is_job_post)
@@ -82,7 +117,7 @@ export function Header() {
           .from('posts')
           .select('id, title, job_metadata, created_at')
           .eq('is_job_post', true)
-          .or(`title.ilike.%${searchValue}%,content.ilike.%${searchValue}%,job_metadata->>company_name.ilike.%${searchValue}%`)
+          .or(`title.like.%${searchValue}%,content.like.%${searchValue}%,job_metadata->>company_name.like.%${searchValue}%`)
           .order('created_at', { ascending: false })
           .limit(3);
         // Posts (not jobs)
@@ -90,7 +125,7 @@ export function Header() {
           .from('posts')
           .select('id, title, content, created_at')
           .eq('is_job_post', false)
-          .or(`title.ilike.%${searchValue}%,content.ilike.%${searchValue}%`)
+          .or(`title.like.%${searchValue}%,content.like.%${searchValue}%`)
           .order('created_at', { ascending: false })
           .limit(3);
         if (peopleError || companiesError || jobsError || postsError) {
@@ -168,14 +203,14 @@ export function Header() {
   return (
     <>
       <header className="bg-background border-b border-border sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between h-16 min-w-0">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4">
+          <div className="flex items-center justify-between h-14 sm:h-16 min-w-0">
             {/* Logo and Search */}
-            <div className="flex items-center space-x-4 lg:space-x-6 flex-1 min-w-0">
-              <Link href="/dashboard" className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-mustard to-forest-green bg-clip-text text-transparent hover:opacity-80 transition-opacity flex-shrink-0">
+            <div className="flex items-center space-x-2 sm:space-x-4 lg:space-x-6 flex-1 min-w-0">
+              <Link href="/dashboard" className="text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r from-mustard to-forest-green bg-clip-text text-transparent hover:opacity-80 transition-opacity flex-shrink-0">
                 Access<span className="text-foreground">Able</span>
               </Link>
-              <div className="relative group flex-1 max-w-md lg:max-w-lg">
+              <div className="relative group flex-1 max-w-xs sm:max-w-md lg:max-w-lg">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 group-focus-within:text-mustard transition-colors" />
                 <Input
                   ref={searchInputRef}
@@ -202,7 +237,7 @@ export function Header() {
                       <div className="p-4 text-center text-destructive text-sm">{searchError}</div>
                     ) : (
                       <>
-                        {['people', 'companies', 'jobs', 'posts'].map(type => (
+                        {(['people', 'companies', 'jobs', 'posts'] as (keyof SearchResults)[]).map(type => (
                           searchResults[type].length > 0 && (
                             <div key={type} className="border-b last:border-b-0 border-border">
                               <div className="px-4 pt-3 pb-1 text-xs font-semibold text-muted-foreground uppercase">{type.charAt(0).toUpperCase() + type.slice(1)}</div>
@@ -306,31 +341,31 @@ export function Header() {
             </div>
 
             {/* Navigation */}
-            <nav className="flex items-center space-x-1 lg:space-x-2 flex-shrink-0">
-              {[
+            <nav className="flex items-center space-x-0.5 sm:space-x-1 lg:space-x-2 flex-shrink-0">
+                {[
                 { icon: Home, label: "Home", key: "home", badge: null, href: "/dashboard" },
                 { icon: Users, label: "Network", key: "network", badge: null, href: "/network" },
                 { icon: Briefcase, label: "Jobs", key: "jobs", badge: null, href: "/jobs" },
-                { icon: Bell, label: "Notifications", key: "notifications", badge: null, href: "/notifications" },
+                { icon: Bell, label: "Notifications", key: "notifications", badge: unreadCount > 0 ? String(Math.min(unreadCount, 99)) : null, href: "/notifications" },
               ].map(({ icon: Icon, label, key, badge, href }) => (
                 <Link key={key} href={href}>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className={`flex flex-col items-center p-2 lg:p-3 h-auto relative transition-all duration-200 hover:bg-accent min-w-0 ${
+                    className={`flex flex-col items-center p-1.5 sm:p-2 lg:p-3 h-auto relative transition-all duration-200 hover:bg-accent min-w-0 ${
                       activeTab === key ? "text-mustard bg-accent" : "text-foreground"
                     }`}
                     aria-label={`Navigate to ${label}`}
                   >
                     <div className="relative">
-                      <Icon className="h-4 w-4 lg:h-5 lg:w-5" />
+                      <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 lg:h-5 lg:w-5" />
                       {badge && (
-                        <Badge className="absolute -top-2 -right-2 h-4 w-4 p-0 text-xs bg-mustard hover:bg-mustard text-foreground">
+                        <span className="absolute -top-1 -right-1 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-mustard text-foreground text-[8px] sm:text-[10px] leading-3 sm:leading-4 text-center font-semibold flex items-center justify-center">
                           {badge}
-                        </Badge>
+                        </span>
                       )}
                     </div>
-                    <span className="text-xs mt-1 font-medium hidden sm:block">{label}</span>
+                    <span className="text-[10px] sm:text-xs mt-0.5 sm:mt-1 font-medium hidden sm:block">{label}</span>
                     {activeTab === key && (
                       <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-mustard rounded-full" />
                     )}
@@ -343,34 +378,34 @@ export function Header() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="flex flex-col items-center p-2 lg:p-3 h-auto hover:bg-accent transition-colors min-w-0 text-foreground"
+                  className="flex flex-col items-center p-1.5 sm:p-2 lg:p-3 h-auto hover:bg-accent transition-colors min-w-0 text-foreground"
                   onClick={() => setShowAccessibilityModal(true)}
                   aria-label="Accessibility settings"
                 >
-                  <Accessibility className="h-4 w-4 lg:h-5 lg:w-5" />
-                  <span className="text-xs mt-1 font-medium hidden sm:block">Access</span>
+                  <Accessibility className="h-3.5 w-3.5 sm:h-4 sm:w-4 lg:h-5 lg:w-5" />
+                  <span className="text-[10px] sm:text-xs mt-0.5 sm:mt-1 font-medium hidden sm:block">Access</span>
                 </Button>
               )}
 
               {/* Profile Menu */}
-              <div className="ml-2 lg:ml-4 pl-2 lg:pl-4 border-l border-border relative">
+              <div className="ml-1 sm:ml-2 lg:ml-4 pl-1 sm:pl-2 lg:pl-4 border-l border-border relative">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="flex items-center space-x-2 p-2 h-auto hover:bg-accent transition-colors min-w-0"
+                  className="flex items-center space-x-1 sm:space-x-2 p-1.5 sm:p-2 h-auto hover:bg-accent transition-colors min-w-0"
                   onClick={() => setShowProfileMenu(!showProfileMenu)}
                   aria-label="Profile menu"
                 >
-                  <Avatar className="h-6 w-6 lg:h-8 lg:w-8 ring-2 ring-mustard flex-shrink-0">
+                  <Avatar className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 ring-2 ring-mustard flex-shrink-0">
                     <AvatarImage src={userProfile?.avatar_url || "/placeholder.svg?height=32&width=32"} alt={`${userProfile?.first_name || 'User'} profile picture`} />
-                    <AvatarFallback className="bg-gradient-to-br from-mustard to-forest-green text-white text-xs lg:text-sm">
+                    <AvatarFallback className="bg-gradient-to-br from-mustard to-forest-green text-white text-[10px] sm:text-xs lg:text-sm">
                       {userProfile ? `${userProfile.first_name?.[0] || ''}${userProfile.last_name?.[0] || ''}` : 'ME'}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex flex-col items-start min-w-0">
-                    <span className="text-xs font-medium text-foreground truncate">Me</span>
+                  <div className="flex flex-col items-start min-w-0 hidden sm:block">
+                    <span className="text-[10px] sm:text-xs font-medium text-foreground truncate">Me</span>
                   </div>
-                  <ChevronDown className="h-3 w-3 text-muted-foreground flex-shrink-0" aria-hidden="true" />
+                  <ChevronDown className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-muted-foreground flex-shrink-0" aria-hidden="true" />
                 </Button>
 
                 {/* Profile Dropdown Menu */}
