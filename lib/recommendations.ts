@@ -5,7 +5,13 @@ type SupabaseClient = ReturnType<typeof createClient>
 
 type UserProfile = {
   id: string
-  skills: string | null
+  skills: string | string[] | null
+}
+
+function skillsToText(skills: string | string[] | null | undefined): string {
+  if (Array.isArray(skills)) return skills.filter(Boolean).join(' ')
+  if (typeof skills === 'string') return skills
+  return ''
 }
 
 type JobRow = {
@@ -53,7 +59,7 @@ export async function computeRecommendationsForAllUsers(supabase: SupabaseClient
   const { profiles, jobs, usedPostsFallback } = await fetchProfilesAndJobs(supabase)
 
   const profileIds = profiles.map((p) => p.id)
-  const profileTexts = profiles.map((p) => p.skills || '')
+  const profileTexts = profiles.map((p) => skillsToText(p.skills))
   const jobIds = jobs.map((j) => j.id)
   const jobTexts = jobs.map((j) => j.description || j.content || j.title || '')
 
@@ -113,18 +119,36 @@ export async function computeRecommendationsForUser(supabase: SupabaseClient, us
 
   if (jobs.length === 0) return { results: [], usedPostsFallback }
 
-  const [profileVecArr, jobEmbeddings] = await Promise.all([
-    embedTexts([profile.skills || '']),
-    embedTexts(jobs.map((j) => j.description || j.content || j.title || '')),
-  ])
-  const profileVec = profileVecArr[0]
+  try {
+    const [profileVecArr, jobEmbeddings] = await Promise.all([
+      embedTexts([skillsToText(profile.skills)]),
+      embedTexts(jobs.map((j) => j.description || j.content || j.title || '')),
+    ])
+    const profileVec = profileVecArr[0]
 
-  const scored = jobs.map((j, idx) => ({
-    job: j,
-    score: cosineSimilarity(profileVec, jobEmbeddings[idx]),
-  }))
+    const scored = jobs.map((j, idx) => ({
+      job: j,
+      score: cosineSimilarity(profileVec, jobEmbeddings[idx]),
+    }))
 
-  scored.sort((a, b) => b.score - a.score)
-  return { results: scored.slice(0, topN), usedPostsFallback }
+    scored.sort((a, b) => b.score - a.score)
+    return { results: scored.slice(0, topN), usedPostsFallback }
+  } catch (err) {
+    // Fallback: simple keyword matching on skills vs job text when embeddings fail
+    const skills = skillsToText(profile.skills).toLowerCase()
+      .split(/[\s,;]+/)
+      .filter(Boolean)
+    const scored = jobs.map((j) => {
+      const text = (
+        (j.description || '') + ' ' +
+        (j.content || '') + ' ' +
+        (j.title || '')
+      ).toLowerCase()
+      const score = skills.reduce((acc, word) => acc + (text.includes(word) ? 1 : 0), 0)
+      return { job: j, score }
+    })
+    scored.sort((a, b) => b.score - a.score)
+    return { results: scored.slice(0, topN), usedPostsFallback }
+  }
 }
 

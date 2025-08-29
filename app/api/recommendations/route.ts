@@ -6,11 +6,17 @@ import { computeRecommendationsForUser } from '@/lib/recommendations'
 export async function GET(req: NextRequest) {
   try {
     const cookieStore = cookies()
+    const incomingAuthHeader = req.headers.get('authorization') || ''
+    const bearerFromHeader = incomingAuthHeader?.toLowerCase().startsWith('bearer ')
+      ? incomingAuthHeader.slice(7)
+      : ''
+    const bearerFromCookie = cookieStore.get('sb-access-token')?.value || ''
+    const accessToken = bearerFromHeader || bearerFromCookie
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
-        global: { headers: { Authorization: `Bearer ${cookieStore.get('sb-access-token')?.value || ''}` } }
+        global: { headers: { Authorization: `Bearer ${accessToken}` } }
       }
     )
 
