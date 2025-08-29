@@ -4,7 +4,7 @@ type EmbeddingsResponse = {
   embeddings: number[][]
 }
 
-const DEFAULT_MODEL = 'sentence-transformers/all-MiniLM-L6-v2'
+const DEFAULT_MODEL = process.env.HF_EMBEDDINGS_MODEL || 'sentence-transformers/all-MiniLM-L6-v2'
 
 export async function embedTexts(texts: string[], model: string = DEFAULT_MODEL): Promise<number[][]> {
   assert(Array.isArray(texts), 'texts must be an array')
@@ -16,14 +16,13 @@ export async function embedTexts(texts: string[], model: string = DEFAULT_MODEL)
     throw new Error('Missing HF_API_KEY environment variable')
   }
 
-  const res = await fetch(`https://api-inference.huggingface.co/pipeline/feature-extraction/${model}`, {
+  const res = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
-      'x-wait-for-model': 'true',
     },
-    body: JSON.stringify({ inputs })
+    body: JSON.stringify({ inputs, options: { wait_for_model: true, use_cache: true } })
   })
 
   if (!res.ok) {
