@@ -5,7 +5,13 @@ type SupabaseClient = ReturnType<typeof createClient>
 
 type UserProfile = {
   id: string
-  skills: string | null
+  skills: string | string[] | null
+}
+
+function skillsToText(skills: string | string[] | null | undefined): string {
+  if (Array.isArray(skills)) return skills.filter(Boolean).join(' ')
+  if (typeof skills === 'string') return skills
+  return ''
 }
 
 type JobRow = {
@@ -53,7 +59,7 @@ export async function computeRecommendationsForAllUsers(supabase: SupabaseClient
   const { profiles, jobs, usedPostsFallback } = await fetchProfilesAndJobs(supabase)
 
   const profileIds = profiles.map((p) => p.id)
-  const profileTexts = profiles.map((p) => p.skills || '')
+  const profileTexts = profiles.map((p) => skillsToText(p.skills))
   const jobIds = jobs.map((j) => j.id)
   const jobTexts = jobs.map((j) => j.description || j.content || j.title || '')
 
@@ -115,7 +121,7 @@ export async function computeRecommendationsForUser(supabase: SupabaseClient, us
 
   try {
     const [profileVecArr, jobEmbeddings] = await Promise.all([
-      embedTexts([profile.skills || '']),
+      embedTexts([skillsToText(profile.skills)]),
       embedTexts(jobs.map((j) => j.description || j.content || j.title || '')),
     ])
     const profileVec = profileVecArr[0]
@@ -129,7 +135,7 @@ export async function computeRecommendationsForUser(supabase: SupabaseClient, us
     return { results: scored.slice(0, topN), usedPostsFallback }
   } catch (err) {
     // Fallback: simple keyword matching on skills vs job text when embeddings fail
-    const skills = (profile.skills || '').toLowerCase()
+    const skills = skillsToText(profile.skills).toLowerCase()
       .split(/[\s,;]+/)
       .filter(Boolean)
     const scored = jobs.map((j) => {
