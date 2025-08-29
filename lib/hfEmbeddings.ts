@@ -16,11 +16,12 @@ export async function embedTexts(texts: string[], model: string = DEFAULT_MODEL)
     throw new Error('Missing HF_API_KEY environment variable')
   }
 
-  const res = await fetch(`https://api-inference.huggingface.co/pipeline/feature-extraction/${encodeURIComponent(model)}`, {
+  const res = await fetch(`https://api-inference.huggingface.co/pipeline/feature-extraction/${model}`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
+      'x-wait-for-model': 'true',
     },
     body: JSON.stringify({ inputs })
   })
