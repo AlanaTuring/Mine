@@ -53,7 +53,13 @@ export default function DashboardPage() {
       try {
         setRecError(null);
         setRecLoading(true);
-        const res = await fetch(`/api/recommendations?n=5`, { signal: controller.signal });
+        const supabase = getSupabaseClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        const accessToken = session?.access_token || '';
+        const res = await fetch(`/api/recommendations?n=5`, {
+          signal: controller.signal,
+          headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+        });
         if (!res.ok) {
           const text = await res.text();
           throw new Error(text || `Failed to fetch recommendations (${res.status})`);
