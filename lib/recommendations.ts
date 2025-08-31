@@ -88,7 +88,7 @@ export async function fetchProfilesAndJobs(supabase: SupabaseClient): Promise<{ 
 
   const { data: jobsData, error: jobsError } = await supabase
     .from('jobs')
-    .select('id, title, description')
+    .select('id, title, description, accessibility_features')
     .limit(1000)
 
   if (!jobsError && Array.isArray(jobsData)) {
@@ -156,7 +156,7 @@ export async function computeRecommendationsForUser(supabase: SupabaseClient, us
   let jobs: JobRow[] = []
   const { data: jobsData, error: jobsError } = await supabase
     .from('jobs')
-    .select('id, title, description')
+    .select('id, title, description, accessibility_features')
     .limit(1000)
 
   if (!jobsError && Array.isArray(jobsData)) {
