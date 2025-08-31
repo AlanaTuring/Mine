@@ -97,16 +97,15 @@ export default function JobsPage() {
   const fetchJobPosts = async () => {
     try {
       const supabase = getSupabaseClient();
-      const { data: postsData, error: postsError } = await supabase
-        .from('posts')
+      const { data: jobsData, error: jobsError } = await supabase
+        .from('jobs')
         .select('*')
-        .eq('is_job_post', true)
         .order('created_at', { ascending: false })
 
-      if (postsError) throw postsError
+      if (jobsError) throw jobsError
 
       // Fetch profiles for all users
-      const userIds = Array.from(new Set(postsData?.map(post => post.user_id) || []))
+      const userIds = Array.from(new Set(jobsData?.map(job => job.user_id) || []))
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('id, first_name, last_name, avatar_url')
@@ -121,17 +120,26 @@ export default function JobsPage() {
       })
 
       // Transform the data
-      const transformedJobPosts: JobPost[] = postsData?.map((post: any) => {
-        const profile = profilesMap.get(post.user_id)
+      const transformedJobPosts: JobPost[] = jobsData?.map((job: any) => {
+        const profile = profilesMap.get(job.user_id)
         return {
-          id: post.id,
-          title: post.title,
-          content: post.content,
-          created_at: post.created_at,
+          id: job.id,
+          title: job.title,
+          content: job.description || job.content,
+          created_at: job.created_at,
           author_name: profile ? `${profile.first_name} ${profile.last_name}`.trim() : 'Anonymous',
           avatar_url: profile?.avatar_url,
-          user_id: post.user_id,
-          job_metadata: post.job_metadata || {}
+          user_id: job.user_id,
+          job_metadata: {
+            company_name: job.company_name || '',
+            location: job.location || '',
+            is_remote: !!job.is_remote,
+            job_type: job.job_type || '',
+            salary_range: job.salary_range || '',
+            deadline: job.deadline || '',
+            application_link: job.application_link || '',
+            accessibility_features: job.accessibility_features || {}
+          }
         }
       }) || []
 
@@ -150,21 +158,18 @@ export default function JobsPage() {
     try {
       const supabase = getSupabaseClient();
       const { error } = await supabase
-        .from('posts')
+        .from('jobs')
         .update({ 
           title: editTitle.trim(),
-          content: editContent.trim(),
-          job_metadata: {
-            company_name: editCompanyName.trim(),
-            location: editLocation.trim(),
-            is_remote: editIsRemote,
-            job_type: editJobType.trim(),
-            salary_range: editSalaryRange.trim(),
-            deadline: editDeadline.trim(),
-            application_link: editApplicationLink.trim(),
-            accessibility_features: editAccessibilityFeatures
-          },
-          updated_at: new Date().toISOString()
+          description: editContent.trim(),
+          company_name: editCompanyName.trim(),
+          location: editLocation.trim(),
+          is_remote: editIsRemote,
+          job_type: editJobType.trim(),
+          salary_range: editSalaryRange.trim(),
+          deadline: editDeadline.trim(),
+          application_link: editApplicationLink.trim(),
+          accessibility_features: editAccessibilityFeatures
         })
         .eq('id', jobId);
       if (!error) {
@@ -201,7 +206,7 @@ export default function JobsPage() {
     try {
       const supabase = getSupabaseClient();
       const { error } = await supabase
-        .from('posts')
+        .from('jobs')
         .delete()
         .eq('id', jobId);
       

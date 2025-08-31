@@ -101,28 +101,18 @@ export default function PostJobPage() {
     }
 
     try {
-      const { error } = await supabase.from("posts").insert([{
+      const { error } = await supabase.from("jobs").insert([{
         user_id: user.id,
         title: filteredData.jobTitle,
-        content: filteredData.description,
-        is_job_post: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        likes: 0,
-        comments: 0,
-        shares: 0,
-        tags: [],
-        // Job-specific metadata
-        job_metadata: {
-          company_name: filteredData.companyName,
-          location: formData.location,
-          is_remote: formData.isRemote,
-          job_type: formData.jobType,
-          application_link: formData.applicationLink,
-          salary_range: formData.salaryRange,
-          deadline: formData.deadline,
-          accessibility_features: accessibilityFeatures,
-        }
+        description: filteredData.description,
+        company_name: filteredData.companyName,
+        location: formData.location,
+        is_remote: formData.isRemote,
+        job_type: formData.jobType,
+        application_link: formData.applicationLink,
+        salary_range: formData.salaryRange,
+        deadline: formData.deadline,
+        accessibility_features: accessibilityFeatures,
       }])
 
       if (error) throw error
