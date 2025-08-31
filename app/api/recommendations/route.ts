@@ -35,6 +35,7 @@ export async function GET(req: NextRequest) {
       description: r.job.description || r.job.content || '',
       job_metadata: r.job.job_metadata || null,
       score: r.score,
+      accessibility: r.job.job_metadata?.accessibility_features || r.job.accessibility_features || null,
     }))
 
     return NextResponse.json({ recommendations: payload, source: usedPostsFallback ? 'posts' : 'jobs' })
